@@ -18,7 +18,7 @@ import { OFICIOS_DEMO } from "../../Data/oficio";
 
 const ADMIN_ROLES: Rol[] = ["Administrador", "Directora"];
 
-// Máximo 5 accesos rápidos — solo lo más importante (el resto vive en el menú lateral)
+// Máximo 5 accesos rapidos
 const ACCESOS = [
   { to: "/crear-oficio", label: "Nuevo documento", icon: FileText },
   { to: "/seguimiento", label: "Seguimiento", icon: ListChecks },

@@ -17,7 +17,6 @@ import {
 import { useAuth } from "../../Guards/useAuth";
 import type { Rol } from "../../Guards/authTypes";
 import ConfirmDialog from "../../components/ConfirmDialog";
-import Logo from "../../components/Logo";
 import { NOTIFICACIONES } from "../../Data/notificaciones";
 
 interface NavItem {
@@ -92,16 +91,11 @@ export default function Sidebar() {
 
   return (
     <div className="min-h-screen w-full flex bg-fondo">
-      {/* Navigation Drawer */}
+      
       <aside className="w-64 shrink-0 bg-guinda text-white flex flex-col">
-        <div className="px-5 py-5 border-b border-white/10">
-          <div className="flex items-center gap-2">
-            <Logo size={40} />
-            <div>
-              <p className="text-sm font-bold uppercase leading-tight">Correspondencia</p>
-              <p className="text-[11px] text-white/70">Gobierno de Puebla</p>
-            </div>
-          </div>
+        <div className="border-b border-white/10">
+          <img src="/src/assets/logo-puebla-blanco.svg" alt="Gobierno del Estado de Puebla" className="w-full block" />
+          <p className="text-center text-sm font-bold uppercase tracking-wide py-3">SegOfi</p>
         </div>
 
         <nav className="flex-1 px-3 pb-4 overflow-y-auto">
@@ -145,9 +139,8 @@ export default function Sidebar() {
         </nav>
       </aside>
 
-      {/* Contenido */}
       <div className="flex-1 flex flex-col">
-        {/* Navigation bar superior: un solo botón (Notificaciones) que despliega todo */}
+
         <header className="h-20 bg-fondo border-b border-borde flex items-center justify-between px-6">
           <div>
             {enDashboard && usuario && (
