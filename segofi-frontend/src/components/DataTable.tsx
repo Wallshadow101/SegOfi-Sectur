@@ -48,7 +48,7 @@ export default function DataTable<T>({
             </tr>
           )}
           {rows.map((row, i) => (
-            <tr key={i} className="hover:bg-fondo/30">
+            <tr key={i} className="hover:bg-fondo/40 transition-colors duration-150">
               {columns.map((col) => (
                 <td key={col.header} className={`px-4 py-3 text-texto ${col.className ?? ""}`}>
                   {col.render(row)}
@@ -56,11 +56,11 @@ export default function DataTable<T>({
               ))}
               {showActions && (
                 <td className="px-4 py-3">
-                  <div className="flex items-center justify-end gap-2">
+                  <div className="flex items-center justify-end gap-1">
                     {onView && (
                       <button
                         onClick={() => onView(row)}
-                        className="p-2 rounded-lg text-guinda hover:bg-guinda/10"
+                        className="p-2 rounded-lg text-guinda hover:bg-guinda/10 hover:scale-110 transition-all"
                         aria-label="Ver"
                       >
                         <Eye size={18} />
@@ -69,7 +69,7 @@ export default function DataTable<T>({
                     {onEdit && (
                       <button
                         onClick={() => onEdit(row)}
-                        className="p-2 rounded-lg text-dorado hover:bg-dorado/10"
+                        className="p-2 rounded-lg text-dorado hover:bg-dorado/10 hover:scale-110 transition-all"
                         aria-label="Editar"
                       >
                         <Pencil size={18} />
@@ -78,7 +78,7 @@ export default function DataTable<T>({
                     {onDelete && (
                       <button
                         onClick={() => onDelete(row)}
-                        className="p-2 rounded-lg text-guinda hover:bg-guinda/10"
+                        className="p-2 rounded-lg text-guinda hover:bg-guinda/10 hover:scale-110 transition-all"
                         aria-label="Eliminar"
                       >
                         <Trash2 size={18} />

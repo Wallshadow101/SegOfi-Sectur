@@ -34,20 +34,19 @@ export default function App() {
           <Route element={<RoleGuard />}>
             <Route element={<Sidebar />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/crear-oficio" element={<NuevoDocumento />} />
-              <Route path="/crear-oficio/:tipo" element={<Documents />} />
-              <Route path="/ver-oficios" element={<VerOficios />} />
-              <Route path="/seguimiento" element={<Seguimiento />} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/perfil" element={<Perfil />} />
-
               {/* Requiere además rol Administrador o Directora */}
               <Route element={<RoleGuard rolesPermitidos={[...ROLES_ADMIN]} />}>
+                <Route path="/crear-oficio" element={<NuevoDocumento />} />
+                <Route path="/crear-oficio/:tipo" element={<Documents />} />
                 <Route path="/reportes" element={<Reportes />} />
                 <Route path="/departamentos" element={<Departamentos />} />
                 <Route path="/cuentas" element={<Cuentas />} />
                 <Route path="/seguimiento-personas" element={<SeguimientoPersonas />} />
               </Route>
+              <Route path="/ver-oficios" element={<VerOficios />} />
+              <Route path="/seguimiento" element={<Seguimiento />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/perfil" element={<Perfil />} />
             </Route>
           </Route>
 
@@ -57,3 +56,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

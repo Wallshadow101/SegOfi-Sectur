@@ -1,10 +1,23 @@
 import { useMemo, useState } from "react";
+import {
+  FileDown,
+  FileSpreadsheet,
+  FileStack,
+  Clock3,
+  CheckCircle2,
+  Archive,
+  BarChart3,
+  CalendarRange,
+} from "lucide-react";
 import Card from "../../components/Card";
+import PageHeader from "../../components/PageHeader";
+import StatCard from "../../components/StatCard";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
+import Avatar from "../../components/Avatar";
+import Toast from "../../components/Toast";
 import DataTable, { type Column } from "../../components/DataTable";
 import { OFICIOS_DEMO } from "../../Data/oficio";
-import { FileDown, FileSpreadsheet, FileStack, Clock3, CheckCircle2, Archive } from "lucide-react";
 
 interface RegistroAuditoria {
   usuario: string;
@@ -16,7 +29,12 @@ interface RegistroAuditoria {
 type Periodo = "Semanal" | "Mensual" | "Anual";
 
 const REGISTROS: RegistroAuditoria[] = OFICIOS_DEMO.flatMap((o) =>
-  o.seguimiento.map((ev) => ({ usuario: ev.autor, accion: ev.accion, documento: o.numero, fecha: ev.fecha }))
+  o.seguimiento.map((ev) => ({
+    usuario: ev.autor,
+    accion: ev.accion,
+    documento: o.numero,
+    fecha: ev.fecha,
+  })),
 );
 
 // "dd/mm/yyyy hh:mm" -> Date
@@ -32,28 +50,36 @@ function aISO(d: Date): string {
 }
 
 const columns: Column<RegistroAuditoria>[] = [
-  { header: "Usuario", render: (r) => r.usuario },
-  { header: "Acción", render: (r) => r.accion },
-  { header: "Documento", render: (r) => <span className="font-medium">{r.documento}</span> },
-  { header: "Fecha", render: (r) => r.fecha },
-];
-
-const ESTADISTICAS = [
-  { label: "Total de oficios", valor: OFICIOS_DEMO.length, icon: FileStack, color: "text-guinda" },
   {
-    label: "Pendientes",
-    valor: OFICIOS_DEMO.filter((o) => ["Recibido", "Turnado", "En seguimiento"].includes(o.estado)).length,
-    icon: Clock3,
-    color: "text-amber-600",
+    header: "Usuario",
+    render: (r) => (
+      <span className="inline-flex items-center gap-2">
+        <Avatar nombre={r.usuario} size={28} />
+        {r.usuario}
+      </span>
+    ),
   },
-  { label: "Respondidos", valor: OFICIOS_DEMO.filter((o) => o.estado === "Respondido").length, icon: CheckCircle2, color: "text-emerald-600" },
-  { label: "Cerrados", valor: OFICIOS_DEMO.filter((o) => o.estado === "Cerrado").length, icon: Archive, color: "text-texto-secundario" },
+  { header: "Acción", render: (r) => r.accion },
+  {
+    header: "Documento",
+    render: (r) => <span className="font-medium">{r.documento}</span>,
+  },
+  { header: "Fecha", render: (r) => r.fecha },
 ];
 
 export default function Reportes() {
   const [periodo, setPeriodo] = useState<Periodo | null>(null);
   const [desde, setDesde] = useState("");
   const [hasta, setHasta] = useState("");
+  const [aviso, setAviso] = useState<string | null>(null);
+
+  const pendientes = OFICIOS_DEMO.filter((o) =>
+    ["Recibido", "Turnado", "En seguimiento"].includes(o.estado),
+  ).length;
+  const respondidos = OFICIOS_DEMO.filter(
+    (o) => o.estado === "Respondido",
+  ).length;
+  const cerrados = OFICIOS_DEMO.filter((o) => o.estado === "Cerrado").length;
 
   const seleccionarPeriodo = (p: Periodo) => {
     const hoy = new Date();
@@ -82,58 +108,87 @@ export default function Reportes() {
 
   const exportarExcel = () => {
     const encabezado = "Usuario,Acción,Documento,Fecha\n";
-    const cuerpo = filas.map((r) => `"${r.usuario}","${r.accion}","${r.documento}","${r.fecha}"`).join("\n");
-    const blob = new Blob([encabezado + cuerpo], { type: "text/csv;charset=utf-8;" });
+    const cuerpo = filas
+      .map((r) => `"${r.usuario}","${r.accion}","${r.documento}","${r.fecha}"`)
+      .join("\n");
+    const blob = new Blob([encabezado + cuerpo], {
+      type: "text/csv;charset=utf-8;",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
     a.download = "reporte-auditoria.csv";
     a.click();
     URL.revokeObjectURL(url);
+    setAviso("Reporte descargado");
   };
 
   const exportarPdf = () => window.print();
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {ESTADISTICAS.map(({ label, valor, icon: Icon, color }) => (
-          <Card key={label}>
-            <div className="flex items-center gap-3">
-              <span className={`h-10 w-10 rounded-full bg-fondo flex items-center justify-center ${color}`}>
-                <Icon size={20} />
-              </span>
-              <div>
-                <p className="text-xl font-bold text-texto">{valor}</p>
-                <p className="text-xs text-texto-secundario">{label}</p>
-              </div>
-            </div>
-          </Card>
-        ))}
-      </div>
-
-      <Card
-        title="Generar reporte de auditoría"
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        icon={BarChart3}
+        title="Generar reporte"
+        description="Auditoría de acciones por periodo, con exportación a Excel y PDF"
         action={
-          <div className="flex gap-2">
-            <Button icon={<FileSpreadsheet size={18} />} variant="secondary" onClick={exportarExcel}>
+          <>
+            <Button
+              variant="secondary"
+              icon={<FileSpreadsheet size={18} />}
+              onClick={exportarExcel}
+            >
               Excel
             </Button>
-            <Button icon={<FileDown size={18} />} variant="outline" onClick={exportarPdf}>
+            <Button
+              variant="outlineLight"
+              icon={<FileDown size={18} />}
+              onClick={exportarPdf}
+            >
               PDF
             </Button>
-          </div>
+          </>
         }
-      >
-        <div className="flex flex-wrap gap-2 mb-4">
+      />
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <StatCard
+          label="Total de oficios"
+          value={OFICIOS_DEMO.length}
+          icon={FileStack}
+          tone="guinda"
+        />
+        <StatCard
+          label="Pendientes"
+          value={pendientes}
+          icon={Clock3}
+          tone="amber"
+        />
+        <StatCard
+          label="Respondidos"
+          value={respondidos}
+          icon={CheckCircle2}
+          tone="emerald"
+        />
+        <StatCard
+          label="Cerrados"
+          value={cerrados}
+          icon={Archive}
+          tone="gray"
+        />
+      </div>
+
+      <Card>
+        <div className="flex flex-wrap items-center gap-2 mb-4">
+          <CalendarRange size={18} className="text-guinda mr-1" />
           {(["Semanal", "Mensual", "Anual"] as Periodo[]).map((p) => (
             <button
               key={p}
               onClick={() => seleccionarPeriodo(p)}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+              className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${
                 periodo === p
-                  ? "bg-guinda text-white border-guinda"
-                  : "bg-white text-texto-secundario border-borde hover:border-guinda"
+                  ? "bg-guinda text-white border-guinda shadow-sm"
+                  : "bg-white text-texto-secundario border-borde hover:border-guinda hover:text-guinda"
               }`}
             >
               {p}
@@ -142,17 +197,54 @@ export default function Reportes() {
         </div>
 
         <div className="flex flex-wrap items-end gap-4 mb-5">
-          <Input label="Desde" type="date" value={desde} onChange={(e) => { setPeriodo(null); setDesde(e.target.value); }} />
-          <Input label="Hasta" type="date" value={hasta} onChange={(e) => { setPeriodo(null); setHasta(e.target.value); }} />
+          <div className="w-44">
+            <Input
+              label="Desde"
+              type="date"
+              value={desde}
+              onChange={(e) => {
+                setPeriodo(null);
+                setDesde(e.target.value);
+              }}
+            />
+          </div>
+          <div className="w-44">
+            <Input
+              label="Hasta"
+              type="date"
+              value={hasta}
+              onChange={(e) => {
+                setPeriodo(null);
+                setHasta(e.target.value);
+              }}
+            />
+          </div>
           {(desde || hasta) && (
-            <Button variant="outline" onClick={() => { setPeriodo(null); setDesde(""); setHasta(""); }}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setPeriodo(null);
+                setDesde("");
+                setHasta("");
+              }}
+            >
               Limpiar
             </Button>
           )}
+          <span className="ml-auto text-sm text-texto-secundario pb-3">
+            {filas.length} registros
+          </span>
         </div>
 
-        <DataTable columns={columns} rows={filas} emptyMessage="No hay registros en el rango seleccionado." />
+        <DataTable
+          columns={columns}
+          rows={filas}
+          emptyMessage="No hay registros en el rango seleccionado."
+        />
       </Card>
+
+      <Toast mensaje={aviso} onClose={() => setAviso(null)} />
     </div>
   );
 }
+

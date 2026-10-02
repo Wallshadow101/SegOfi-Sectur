@@ -17,7 +17,9 @@ import {
 import { useAuth } from "../../Guards/useAuth";
 import type { Rol } from "../../Guards/authTypes";
 import ConfirmDialog from "../../components/ConfirmDialog";
+import Avatar from "../../components/Avatar";
 import { NOTIFICACIONES } from "../../Data/notificaciones";
+import { notificacionesVisibles } from "../../Guards/alcance";
 
 interface NavItem {
   to: string;
@@ -33,20 +35,55 @@ const MENU_PRINCIPAL: NavItem[] = [
 ];
 
 const ACCIONES: NavItem[] = [
-  { to: "/crear-oficio", label: "Nuevo documento", icon: <FileText size={18} /> },
+  {
+    to: "/crear-oficio",
+    label: "Nuevo documento",
+    icon: <FileText size={18} />,
+    rolesPermitidos: ADMIN_ROLES,
+  },
   { to: "/seguimiento", label: "Seguimiento", icon: <ListChecks size={18} /> },
-  { to: "/seguimiento-personas", label: "Seguimiento por persona", icon: <UsersRound size={18} />, rolesPermitidos: ADMIN_ROLES },
+  {
+    to: "/seguimiento-personas",
+    label: "Seguimiento por persona",
+    icon: <UsersRound size={18} />,
+    rolesPermitidos: ADMIN_ROLES,
+  },
   { to: "/ver-oficios", label: "Ver oficios", icon: <FolderOpen size={18} /> },
 ];
 
 const ADMINISTRAR: NavItem[] = [
-  { to: "/departamentos", label: "Departamentos", icon: <Building2 size={18} />, rolesPermitidos: ADMIN_ROLES },
-  { to: "/cuentas", label: "Cuentas", icon: <Users size={18} />, rolesPermitidos: ADMIN_ROLES },
-  { to: "/reportes", label: "Generar reporte", icon: <BarChart3 size={18} />, rolesPermitidos: ADMIN_ROLES },
+  {
+    to: "/departamentos",
+    label: "Departamentos",
+    icon: <Building2 size={18} />,
+    rolesPermitidos: ADMIN_ROLES,
+  },
+  {
+    to: "/cuentas",
+    label: "Cuentas",
+    icon: <Users size={18} />,
+    rolesPermitidos: ADMIN_ROLES,
+  },
+  {
+    to: "/reportes",
+    label: "Generar reporte",
+    icon: <BarChart3 size={18} />,
+    rolesPermitidos: ADMIN_ROLES,
+  },
 ];
 
+const ETIQUETA_ROL: Record<Rol, string> = {
+  Usuario: "Usuario",
+  Administrador: "Administrador",
+  Directora: "Directora",
+  JefeDepartamento: "Jefe de departamento",
+};
+
 function visiblesPara(items: NavItem[], rol?: Rol) {
-  return items.filter((item) => !item.rolesPermitidos || (rol && item.rolesPermitidos.includes(rol)));
+  return items.filter(
+    (item) =>
+      !item.rolesPermitidos || (rol && item.rolesPermitidos.includes(rol)),
+  );
 }
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
@@ -69,7 +106,10 @@ export default function Sidebar() {
   const menuPrincipal = visiblesPara(MENU_PRINCIPAL, usuario?.rol);
   const acciones = visiblesPara(ACCIONES, usuario?.rol);
   const administrar = visiblesPara(ADMINISTRAR, usuario?.rol);
-  const notisPreview = NOTIFICACIONES.slice(0, 3);
+  const notisPreview = notificacionesVisibles(usuario, NOTIFICACIONES).slice(
+    0,
+    3,
+  );
 
   const confirmarLogout = () => {
     logout();
@@ -85,25 +125,35 @@ export default function Sidebar() {
   };
 
   const linkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-      isActive ? "bg-dorado text-white" : "text-white/85 hover:bg-white/10"
+    `group flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-150 ${
+      isActive
+        ? "bg-dorado text-white shadow-md"
+        : "text-white/85 hover:bg-white/10 hover:translate-x-1"
     }`;
 
   return (
     <div className="min-h-screen w-full flex bg-fondo">
-      
-      <aside className="w-64 shrink-0 bg-guinda text-white flex flex-col">
+      {/* Navigation Drawer */}
+      <aside className="w-64 shrink-0 sticky top-0 h-screen bg-gradient-to-b from-guinda via-guinda to-guinda-dark text-white flex flex-col shadow-xl z-10">
         <div className="border-b border-white/10">
-          <img src="/src/assets/logo-puebla-blanco.svg" alt="Gobierno del Estado de Puebla" className="w-full block" />
-          <p className="text-center text-sm font-bold uppercase tracking-wide py-3">SegOfi</p>
+          <img
+            src="/logo-puebla-blanco.svg"
+            alt="Gobierno del Estado de Puebla"
+            className="w-full block"
+          />
+          <p className="text-center text-sm font-bold uppercase tracking-wide py-3">
+            SegOfi
+          </p>
         </div>
 
-        <nav className="flex-1 px-3 pb-4 overflow-y-auto">
+        <nav className="flex-1 min-h-0 px-3 pb-4 overflow-y-auto">
           <SectionLabel>Menú principal</SectionLabel>
           <div className="flex flex-col gap-1">
             {menuPrincipal.map((item) => (
               <NavLink key={item.to} to={item.to} className={linkClass}>
-                {item.icon}
+                <span className="transition-transform duration-200 group-hover:scale-110">
+                  {item.icon}
+                </span>
                 {item.label}
               </NavLink>
             ))}
@@ -115,7 +165,9 @@ export default function Sidebar() {
               <div className="flex flex-col gap-1">
                 {acciones.map((item) => (
                   <NavLink key={item.to} to={item.to} className={linkClass}>
-                    {item.icon}
+                    <span className="transition-transform duration-200 group-hover:scale-110">
+                      {item.icon}
+                    </span>
                     {item.label}
                   </NavLink>
                 ))}
@@ -129,7 +181,9 @@ export default function Sidebar() {
               <div className="flex flex-col gap-1">
                 {administrar.map((item) => (
                   <NavLink key={item.to} to={item.to} className={linkClass}>
-                    {item.icon}
+                    <span className="transition-transform duration-200 group-hover:scale-110">
+                      {item.icon}
+                    </span>
                     {item.label}
                   </NavLink>
                 ))}
@@ -137,15 +191,32 @@ export default function Sidebar() {
             </>
           )}
         </nav>
+
+        {usuario && (
+          <div className="m-3 mt-0 flex items-center gap-3 rounded-xl bg-white/10 px-3 py-3 backdrop-blur-sm">
+            <Avatar nombre={usuario.nombre} size={38} />
+            <div className="min-w-0">
+              <p className="text-sm font-semibold leading-tight truncate">
+                {usuario.nombre}
+              </p>
+              <p className="text-[11px] text-white/70">
+                {ETIQUETA_ROL[usuario.rol]}
+              </p>
+            </div>
+          </div>
+        )}
       </aside>
 
-      <div className="flex-1 flex flex-col">
-
-        <header className="h-20 bg-fondo border-b border-borde flex items-center justify-between px-6">
+      {/* Contenido */}
+      <div className="flex-1 flex flex-col bg-gradient-to-br from-[#e8e4e5] via-fondo to-[#d3c8cb] min-w-0">
+        {/* Navigation bar superior: un solo botón (Notificaciones) que despliega todo */}
+        <header className="h-20 bg-white border-b border-borde flex items-center justify-between px-6">
           <div>
             {enDashboard && usuario && (
               <div className="animate-in fade-in duration-200">
-                <h1 className="text-lg font-bold text-guinda leading-tight">Bienvenido, {usuario.nombre}</h1>
+                <h1 className="text-lg font-bold text-guinda leading-tight">
+                  Bienvenido, {usuario.nombre}
+                </h1>
                 <p className="text-xs text-texto-secundario">
                   {usuario.cargo} · {usuario.dependencia}
                 </p>
@@ -153,7 +224,11 @@ export default function Sidebar() {
             )}
           </div>
 
-          <div className="relative" onMouseEnter={abrirAlEntrar} onMouseLeave={cerrarAlSalir}>
+          <div
+            className="relative"
+            onMouseEnter={abrirAlEntrar}
+            onMouseLeave={cerrarAlSalir}
+          >
             <button
               onClick={() => setMenuAbierto((v) => !v)}
               className="flex items-center gap-2 pl-4 pr-3 py-2 rounded-full bg-guinda text-white text-sm font-medium
@@ -164,7 +239,10 @@ export default function Sidebar() {
                 <span className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-dorado" />
               </span>
               Notificaciones
-              <ChevronDown size={16} className={`transition-transform ${menuAbierto ? "rotate-180" : ""}`} />
+              <ChevronDown
+                size={16}
+                className={`transition-transform ${menuAbierto ? "rotate-180" : ""}`}
+              />
             </button>
 
             {menuAbierto && (
@@ -172,18 +250,27 @@ export default function Sidebar() {
                 className="absolute right-0 mt-1 w-80 rounded-xl border border-borde bg-white shadow-lg z-20
                   animate-in fade-in slide-in-from-top-2 duration-150"
               >
-                <p className="px-4 py-3 text-sm font-semibold text-guinda border-b border-borde">Notificaciones</p>
+                <p className="px-4 py-3 text-sm font-semibold text-guinda border-b border-borde">
+                  Notificaciones
+                </p>
                 <ul className="divide-y divide-borde">
                   {notisPreview.map((n, i) => {
                     const Icono = n.icono;
                     return (
-                      <li key={i} className="flex items-start gap-3 px-4 py-3 hover:bg-fondo/40 transition-colors">
+                      <li
+                        key={i}
+                        className="flex items-start gap-3 px-4 py-3 hover:bg-fondo/40 transition-colors"
+                      >
                         <span className="h-8 w-8 shrink-0 rounded-full bg-guinda/10 text-guinda flex items-center justify-center">
                           <Icono size={15} />
                         </span>
                         <div>
-                          <p className="text-sm text-texto leading-snug">{n.texto}</p>
-                          <p className="text-xs text-texto-secundario mt-0.5">{n.fecha}</p>
+                          <p className="text-sm text-texto leading-snug">
+                            {n.texto}
+                          </p>
+                          <p className="text-xs text-texto-secundario mt-0.5">
+                            {n.fecha}
+                          </p>
                         </div>
                       </li>
                     );
@@ -199,8 +286,12 @@ export default function Sidebar() {
 
                 <div className="border-t border-borde">
                   <div className="px-4 py-3">
-                    <p className="text-sm font-semibold text-texto truncate">{usuario?.nombre}</p>
-                    <p className="text-xs text-texto-secundario truncate">{usuario?.cargo}</p>
+                    <p className="text-sm font-semibold text-texto truncate">
+                      {usuario?.nombre}
+                    </p>
+                    <p className="text-xs text-texto-secundario truncate">
+                      {usuario?.cargo}
+                    </p>
                   </div>
                   <NavLink
                     to="/perfil"
@@ -226,8 +317,18 @@ export default function Sidebar() {
           </div>
         </header>
 
-        <main className="flex-1 p-6">
-          <Outlet />
+        <main className="relative flex-1 p-6">
+          <div
+            className="pointer-events-none absolute inset-0"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle, rgba(97,10,31,0.10) 1px, transparent 1px)",
+              backgroundSize: "22px 22px",
+            }}
+          />
+          <div className="relative">
+            <Outlet />
+          </div>
         </main>
       </div>
 

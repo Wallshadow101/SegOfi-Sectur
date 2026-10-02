@@ -1,22 +1,18 @@
 import { useState } from "react";
+import { AlertCircle, Plus, Search, Users } from "lucide-react";
 import Card from "../../components/Card";
+import PageHeader from "../../components/PageHeader";
 import Input from "../../components/Input";
 import Select from "../../components/Select";
 import Button from "../../components/Button";
+import Avatar from "../../components/Avatar";
+import Toast from "../../components/Toast";
 import DataTable, { type Column } from "../../components/DataTable";
 import FormModal from "../../components/FormModal";
 import ConfirmDialog from "../../components/ConfirmDialog";
 import { DEPARTAMENTOS_DEMO } from "../../Data/departamentos";
+import { PERSONAS_DEMO, type Persona } from "../../Data/personas";
 import type { Rol } from "../../Guards/authTypes";
-import { Plus, Search } from "lucide-react";
-
-interface Cuenta {
-  id: number;
-  nombre: string;
-  correo: string;
-  rol: Rol;
-  departamento: string;
-}
 
 const ROLES: { value: Rol; label: string }[] = [
   { value: "Usuario", label: "Usuario" },
@@ -25,27 +21,41 @@ const ROLES: { value: Rol; label: string }[] = [
   { value: "Administrador", label: "Administrador" },
 ];
 
-const DEPARTAMENTOS_OPTS = DEPARTAMENTOS_DEMO.map((d) => ({ value: d.nombre, label: d.nombre }));
+const ESTILO_ROL: Record<Rol, string> = {
+  Usuario: "bg-blue-50 text-blue-700 border-blue-200",
+  JefeDepartamento: "bg-amber-50 text-amber-700 border-amber-200",
+  Directora: "bg-guinda/10 text-guinda border-guinda/30",
+  Administrador: "bg-dorado/15 text-dorado border-dorado/30",
+};
 
-const CUENTAS_DEMO: Cuenta[] = [
-  { id: 1, nombre: "Lic. Carlos Eduardo Martínez López", correo: "usuario@puebla.gob.mx", rol: "Usuario", departamento: "Protocolos" },
-  { id: 2, nombre: "Ing. Jorge Luis Cano Pérez", correo: "admin@puebla.gob.mx", rol: "Administrador", departamento: "Desarrollo Turístico" },
-  { id: 3, nombre: "Mtra. Fernanda Ibarra Solís", correo: "directora@puebla.gob.mx", rol: "Directora", departamento: "Promoción Turística" },
-  { id: 4, nombre: "Lic. Ana Patricia Rojas Vega", correo: "jefedepto@puebla.gob.mx", rol: "JefeDepartamento", departamento: "18 Ote" },
-];
+const DEPARTAMENTOS_OPTS = DEPARTAMENTOS_DEMO.map((d) => ({
+  value: d.nombre,
+  label: d.nombre,
+}));
 
-const CUENTA_VACIA = { nombre: "", correo: "", rol: "Usuario" as Rol, departamento: DEPARTAMENTOS_DEMO[0].nombre };
+const CUENTA_VACIA = {
+  nombre: "",
+  correo: "",
+  cargo: "",
+  rol: "Usuario" as Rol,
+  departamento: DEPARTAMENTOS_DEMO[0].nombre,
+};
 
 export default function Cuentas() {
-  const [cuentas, setCuentas] = useState<Cuenta[]>(CUENTAS_DEMO);
+  const [cuentas, setCuentas] = useState<Persona[]>(PERSONAS_DEMO);
   const [busqueda, setBusqueda] = useState("");
   const [modalAbierto, setModalAbierto] = useState(false);
-  const [editando, setEditando] = useState<Cuenta | null>(null);
+  const [editando, setEditando] = useState<Persona | null>(null);
   const [form, setForm] = useState(CUENTA_VACIA);
-  const [porEliminar, setPorEliminar] = useState<Cuenta | null>(null);
+  const [porEliminar, setPorEliminar] = useState<Persona | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
+
+  const pendientes = cuentas.filter((c) => !c.rol).length;
 
   const filas = cuentas.filter((c) =>
-    `${c.nombre} ${c.correo} ${c.departamento}`.toLowerCase().includes(busqueda.toLowerCase())
+    `${c.nombre} ${c.correo} ${c.departamento ?? ""}`
+      .toLowerCase()
+      .includes(busqueda.toLowerCase()),
   );
 
   const abrirNueva = () => {
@@ -54,17 +64,31 @@ export default function Cuentas() {
     setModalAbierto(true);
   };
 
-  const abrirEditar = (c: Cuenta) => {
+  const abrirEditar = (c: Persona) => {
     setEditando(c);
-    setForm({ nombre: c.nombre, correo: c.correo, rol: c.rol, departamento: c.departamento });
+    setForm({
+      nombre: c.nombre,
+      correo: c.correo,
+      cargo: c.cargo ?? "",
+      rol: c.rol ?? "Usuario",
+      departamento: c.departamento ?? DEPARTAMENTOS_DEMO[0].nombre,
+    });
     setModalAbierto(true);
   };
 
   const guardar = () => {
     if (editando) {
-      setCuentas((prev) => prev.map((c) => (c.id === editando.id ? { ...c, ...form } : c)));
+      setCuentas((prev) =>
+        prev.map((c) => (c.id === editando.id ? { ...c, ...form } : c)),
+      );
+      setAviso(
+        editando.rol
+          ? "Cuenta actualizada"
+          : "Cuenta activada con su rol y departamento",
+      );
     } else {
       setCuentas((prev) => [...prev, { id: Date.now(), ...form }]);
+      setAviso("Cuenta creada");
     }
     setModalAbierto(false);
   };
@@ -73,36 +97,97 @@ export default function Cuentas() {
     if (!porEliminar) return;
     setCuentas((prev) => prev.filter((c) => c.id !== porEliminar.id));
     setPorEliminar(null);
+    setAviso("Cuenta eliminada");
   };
 
-  const columns: Column<Cuenta>[] = [
-    { header: "Nombre", render: (c) => <span className="font-medium">{c.nombre}</span> },
+  const columns: Column<Persona>[] = [
+    {
+      header: "Nombre",
+      render: (c) => (
+        <span className="inline-flex items-center gap-3 font-medium">
+          <Avatar nombre={c.nombre} size={34} />
+          {c.nombre}
+        </span>
+      ),
+    },
     { header: "Correo", render: (c) => c.correo },
-    { header: "Rol", render: (c) => c.rol },
-    { header: "Departamento", render: (c) => c.departamento },
+    {
+      header: "Rol",
+      render: (c) =>
+        c.rol ? (
+          <span
+            className={`rounded-full border px-3 py-1 text-xs font-medium ${ESTILO_ROL[c.rol]}`}
+          >
+            {ROLES.find((r) => r.value === c.rol)?.label}
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-medium text-amber-700">
+            <AlertCircle size={12} />
+            Pendiente
+          </span>
+        ),
+    },
+    {
+      header: "Departamento",
+      render: (c) =>
+        c.departamento ?? (
+          <span className="text-texto-secundario italic">Sin asignar</span>
+        ),
+    },
   ];
 
   return (
-    <Card
-      title="Cuentas"
-      action={
-        <Button icon={<Plus size={18} />} onClick={abrirNueva}>
-          Agregar
-        </Button>
-      }
-    >
-      <div className="relative mb-4 max-w-sm">
-        <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-texto-secundario pointer-events-none" />
-        <Input
-          label="Buscar"
-          placeholder="Nombre, correo o departamento…"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-          className="pl-11"
-        />
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        icon={Users}
+        title="Cuentas"
+        description={
+          pendientes > 0
+            ? `${cuentas.length} cuentas registradas · ${pendientes} pendiente${pendientes > 1 ? "s" : ""} por asignar`
+            : `${cuentas.length} cuentas registradas`
+        }
+        action={
+          <Button
+            variant="light"
+            icon={<Plus size={18} />}
+            onClick={abrirNueva}
+          >
+            Agregar
+          </Button>
+        }
+      />
 
-      <DataTable columns={columns} rows={filas} onEdit={abrirEditar} onDelete={setPorEliminar} />
+      {pendientes > 0 && (
+        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 animate-in fade-in duration-200">
+          <AlertCircle size={18} className="text-amber-600 shrink-0 mt-0.5" />
+          <p className="text-sm text-amber-800">
+            Hay {pendientes} cuenta{pendientes > 1 ? "s" : ""} creada
+            {pendientes > 1 ? "s" : ""} desde el registro público que aún no
+            tiene{pendientes > 1 ? "n" : ""} cargo, rol ni departamento. Edítala
+            {pendientes > 1 ? "s" : ""} para activarla
+            {pendientes > 1 ? "s" : ""}.
+          </p>
+        </div>
+      )}
+
+      <Card>
+        <div className="max-w-sm mb-4">
+          <Input
+            label="Buscar"
+            icon={<Search size={18} />}
+            placeholder="Nombre, correo o departamento…"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
+
+        <DataTable
+          columns={columns}
+          rows={filas}
+          onEdit={abrirEditar}
+          onDelete={setPorEliminar}
+        />
+      </Card>
 
       <FormModal
         open={modalAbierto}
@@ -123,6 +208,13 @@ export default function Cuentas() {
           onChange={(e) => setForm({ ...form, correo: e.target.value })}
           required
         />
+        <Input
+          label="Cargo"
+          value={form.cargo}
+          onChange={(e) => setForm({ ...form, cargo: e.target.value })}
+          placeholder="Ej. Jefe de Departamento"
+          required
+        />
         <Select
           label="Rol"
           options={ROLES}
@@ -140,13 +232,19 @@ export default function Cuentas() {
       <ConfirmDialog
         open={porEliminar !== null}
         title="¿Eliminar cuenta?"
-        description={porEliminar ? `Se eliminará la cuenta de “${porEliminar.nombre}”.` : undefined}
+        description={
+          porEliminar
+            ? `Se eliminará la cuenta de “${porEliminar.nombre}”.`
+            : undefined
+        }
         variant="danger"
         confirmLabel="Sí"
         cancelLabel="No"
         onConfirm={eliminar}
         onCancel={() => setPorEliminar(null)}
       />
-    </Card>
+
+      <Toast mensaje={aviso} onClose={() => setAviso(null)} />
+    </div>
   );
 }

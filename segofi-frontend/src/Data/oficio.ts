@@ -14,6 +14,7 @@ export interface Oficio {
   estado: EstadoOficio;
   archivo: string;
   seguimiento: EventoSeguimiento[];
+  destinatariosPersonas?: string[];
 }
 
 export const OFICIOS_DEMO: Oficio[] = [
@@ -59,6 +60,7 @@ export const OFICIOS_DEMO: Oficio[] = [
     fecha: "01/09/2026",
     estado: "Respondido",
     archivo: "of_0139.pdf",
+    destinatariosPersonas: ["Lic. Carlos Eduardo Martínez López"],
     seguimiento: [
       { autor: "Depto. Desarrollo Turístico", accion: "Respondió el oficio", fecha: "02/09/2026 12:40" },
     ],
