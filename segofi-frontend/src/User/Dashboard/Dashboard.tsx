@@ -76,8 +76,6 @@ export default function Dashboard() {
 
   const esAdmin = tieneAccesoTotal(usuario);
 
-  // Para Administrador/Directora esto ya regresa TODOS los oficios (su alcance es total);
-  // para los demás roles, solo los de su departamento o los turnados a ellos.
   const misOficios = oficiosVisibles(usuario, OFICIOS_DEMO);
   const misNotificaciones = notificacionesVisibles(usuario, NOTIFICACIONES);
 

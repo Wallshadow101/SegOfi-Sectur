@@ -137,7 +137,7 @@ export default function Sidebar() {
       <aside className="w-64 shrink-0 sticky top-0 h-screen bg-gradient-to-b from-guinda via-guinda to-guinda-dark text-white flex flex-col shadow-xl z-10">
         <div className="border-b border-white/10">
           <img
-            src="/logo-puebla-blanco.svg"
+            src={`${import.meta.env.BASE_URL}logo-puebla-blanco.svg`}
             alt="Gobierno del Estado de Puebla"
             className="w-full block"
           />

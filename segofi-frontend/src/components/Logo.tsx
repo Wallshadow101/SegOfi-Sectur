@@ -21,7 +21,7 @@ export default function Logo({ height = 48 }: LogoProps) {
 
   return (
     <img
-      src="/public/logopuebla.png"
+      src={`${import.meta.env.BASE_URL}logopuebla.png`}
       alt="Gobierno del Estado de Puebla"
       style={{ height }}
       className="w-auto object-contain"
