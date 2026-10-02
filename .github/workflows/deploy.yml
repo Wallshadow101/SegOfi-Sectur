@@ -25,16 +25,18 @@ jobs:
         with:
           node-version: 20
 
-      - name: Install and Build
+      - name: Install dependencies
         working-directory: ./segofi-frontend
-        run: |
-          npm ci
-          npx ng build --configuration production --base-href /SegOfi-Sectur/
+        run: npm ci
+
+      - name: Build Angular app
+        working-directory: ./segofi-frontend
+        run: npm run build -- --configuration production --base-href /SegOfi-Sectur/
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./segofi-frontend/dist/segofi-frontend/browser # Cambia esta ruta si tu carpeta dist es distinta
+          path: ./segofi-frontend/dist/segofi-frontend/browser
 
   deploy:
     environment:
