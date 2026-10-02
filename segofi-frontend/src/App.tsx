@@ -22,7 +22,7 @@ const ROLES_ADMIN = ["Administrador", "Directora"] as const;
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AuthProvider>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
@@ -41,7 +41,10 @@ export default function App() {
                 <Route path="/reportes" element={<Reportes />} />
                 <Route path="/departamentos" element={<Departamentos />} />
                 <Route path="/cuentas" element={<Cuentas />} />
-                <Route path="/seguimiento-personas" element={<SeguimientoPersonas />} />
+                <Route
+                  path="/seguimiento-personas"
+                  element={<SeguimientoPersonas />}
+                />
               </Route>
               <Route path="/ver-oficios" element={<VerOficios />} />
               <Route path="/seguimiento" element={<Seguimiento />} />
@@ -56,4 +59,3 @@ export default function App() {
     </BrowserRouter>
   );
 }
-
